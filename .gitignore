@@ -1,4 +1,8 @@
 portfolio_value*
 *.swp
 *.bak
+*.bak.*
+*.old
+*.old.*
 *.tmp
+.*
