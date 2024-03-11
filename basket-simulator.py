@@ -8,14 +8,13 @@ def read_historical_data():
 
 # Find the nearest valid date for the start date
 def get_valid_start_date(historical_data, start_date):
-    # Try the exact date, then the next two days
-    for i in range(3):
+    for i in range(3):  # Look up to two days ahead if the exact date is unavailable
         try_date = pd.Timestamp(start_date) + pd.Timedelta(days=i)
         if try_date.strftime('%Y-%m-%d') in historical_data.index:
             return try_date.strftime('%Y-%m-%d')
     return None
 
-# Simulate the portfolio for each start date
+# Adjust the simulation to start from the valid start dates
 def simulate_portfolio(start_dates, basket, historical_data):
     for start_date in start_dates:
         valid_start_date = get_valid_start_date(historical_data, start_date)
@@ -23,17 +22,23 @@ def simulate_portfolio(start_dates, basket, historical_data):
             print(f"No valid data for {start_date}, skipping simulation.")
             continue
         
+        # Adjust the historical data to start from the valid start date
+        filtered_data = historical_data.loc[valid_start_date:]
+        
         results = {}
         for currency, amount in basket.items():
-            if currency in historical_data.columns:
-                initial_rate = historical_data.at[valid_start_date, currency]
+            if currency in filtered_data.columns:
+                initial_rate = filtered_data.iloc[0][currency]  # Use the first available rate after the valid start date
                 initial_units = amount / initial_rate
-                results[currency] = historical_data[currency] * initial_units
+                # Track value over time from the valid start date
+                results[currency] = filtered_data[currency] * initial_units
             else:
-                results[currency] = pd.Series('X', index=historical_data.index)
+                # If currency data is missing, fill the column with 'X'
+                results[currency] = pd.Series('X', index=filtered_data.index)
 
-        results_df = pd.DataFrame(results)
-        output_file_name = f"portfolio_value_{pd.Timestamp(start_date).strftime('%Y%m%d')}.csv"
+        # Convert results to DataFrame and use valid start date for index
+        results_df = pd.DataFrame(results, index=filtered_data.index)
+        output_file_name = f"portfolio_value_{pd.Timestamp(valid_start_date).strftime('%Y%m%d')}.csv"
         results_df.to_csv(output_file_name)
         print(f"Portfolio value simulation saved to {output_file_name}")
 
