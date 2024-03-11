@@ -14,7 +14,7 @@ def get_valid_start_date(historical_data, start_date):
             return try_date.strftime('%Y-%m-%d')
     return None
 
-# Adjust the simulation to start from the valid start dates
+# Simulate the portfolio for each start date
 def simulate_portfolio(start_dates, basket, historical_data):
     for start_date in start_dates:
         valid_start_date = get_valid_start_date(historical_data, start_date)
@@ -28,7 +28,10 @@ def simulate_portfolio(start_dates, basket, historical_data):
         results = {}
         for currency, amount in basket.items():
             if currency in filtered_data.columns:
-                initial_rate = filtered_data.iloc[0][currency]  # Use the first available rate after the valid start date
+                initial_rate = filtered_data.iloc[0].get(currency, pd.NA)
+                if pd.isna(initial_rate):  # Check for missing initial rate
+                    results[currency] = pd.Series('X', index=filtered_data.index)
+                    continue
                 initial_units = amount / initial_rate
                 # Track value over time from the valid start date
                 results[currency] = filtered_data[currency] * initial_units
@@ -38,6 +41,10 @@ def simulate_portfolio(start_dates, basket, historical_data):
 
         # Convert results to DataFrame and use valid start date for index
         results_df = pd.DataFrame(results, index=filtered_data.index)
+        
+        # Calculate TOTALS for each row
+        results_df['TOTALS'] = results_df.replace('X', 0).sum(axis=1)
+
         output_file_name = f"portfolio_value_{pd.Timestamp(valid_start_date).strftime('%Y%m%d')}.csv"
         results_df.to_csv(output_file_name)
         print(f"Portfolio value simulation saved to {output_file_name}")
