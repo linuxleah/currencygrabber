@@ -1,0 +1,10 @@
+CAD: 100k
+CHF: 200k
+EUR: 150k
+JPY: 150k
+AUD: 50k
+NZD: 50k
+Gold: 100k
+GBP: 100k
+SEK: 50k
+NOK: 50k
