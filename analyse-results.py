@@ -2,62 +2,59 @@ import pandas as pd
 import glob
 import os
 
-# Pattern to match all 'portfolio_value_*.csv' files
-file_pattern = 'portfolio_value_*.csv'
-files = sorted(glob.glob(file_pattern))  # Sort files asciibetically
+# Function to calculate and return summary statistics for a DataFrame
+def calculate_summary_stats(df, label_suffix):
+    if df.empty:
+        return pd.DataFrame()
+    numerical_cols = ['AVG', 'MIN', 'MAX', 'MEDIAN']
+    df[numerical_cols] = df[numerical_cols].astype(float)
+    summaries = pd.DataFrame({
+        'File': [f'AVERAGES ({label_suffix})', f'MINIMUM ({label_suffix})', f'MAXIMUM ({label_suffix})'],
+        'AVG': [df['AVG'].mean(), df['AVG'].min(), df['AVG'].max()],
+        'MIN': [df['MIN'].mean(), df['MIN'].min(), df['MIN'].max()],
+        'MAX': [df['MAX'].mean(), df['MAX'].min(), df['MAX'].max()],
+        'MEDIAN': [df['MEDIAN'].mean(), df['MEDIAN'].min(), df['MEDIAN'].max()]
+    })
+    return summaries
 
-# Initialize two empty DataFrames for the results
-results_metal = pd.DataFrame()
-results_no_metal = pd.DataFrame()
+# Initialize empty DataFrames for accumulating results
+results_metal = []
+results_no_metal = []
 
-for file_path in files:
-    # Extract the filename for display purposes
+# Sort files asciibetically and process
+for file_path in sorted(glob.glob('portfolio_value_*.csv')):
     filename = os.path.basename(file_path)
-    
-    # Determine if the file is a metals or no-metals file
-    is_no_metal = 'nometals' in filename
-    
-    # Read the CSV file, focusing on the 'TOTALS' column
     df = pd.read_csv(file_path, usecols=['TOTALS'])
     
-    # Calculate statistics and format to avoid scientific notation
+    # Prepare statistics
     statistics = {
-        'File': filename, 
-        'AVG': '{:.2f}'.format(df['TOTALS'].mean()), 
-        'MIN': '{:.2f}'.format(df['TOTALS'].min()), 
-        'MAX': '{:.2f}'.format(df['TOTALS'].max()), 
-        'MEDIAN': '{:.2f}'.format(df['TOTALS'].median())
+        'File': filename,
+        'AVG': df['TOTALS'].mean(),
+        'MIN': df['TOTALS'].min(),
+        'MAX': df['TOTALS'].max(),
+        'MEDIAN': df['TOTALS'].median()
     }
     
-    # Append the results to the appropriate DataFrame
-    if is_no_metal:
-        results_no_metal = pd.concat([results_no_metal, pd.DataFrame([statistics])], ignore_index=True)
+    # Append to the appropriate list
+    if 'nometals' in filename:
+        results_no_metal.append(statistics)
     else:
-        results_metal = pd.concat([results_metal, pd.DataFrame([statistics])], ignore_index=True)
+        results_metal.append(statistics)
 
-# Function to append AVG, MIN, MAX to results DataFrame
-def append_summary_stats(results_df, label_suffix):
-    if not results_df.empty:
-        numerical_cols = ['AVG', 'MIN', 'MAX', 'MEDIAN']
-        results_df[numerical_cols] = results_df[numerical_cols].astype(float)
-        summary_rows = pd.concat([
-            pd.DataFrame([results_df[numerical_cols].mean()], index=['AVERAGES']).assign(File=f'AVERAGES ({label_suffix})'),
-            pd.DataFrame([results_df[numerical_cols].min()], index=['MINIMUM']).assign(File=f'MINIMUM ({label_suffix})'),
-            pd.DataFrame([results_df[numerical_cols].max()], index=['MAXIMUM']).assign(File=f'MAXIMUM ({label_suffix})')
-        ])
-        return pd.concat([results_df, summary_rows], ignore_index=True)
-    return results_df
+# Convert lists to DataFrames
+df_metal = pd.DataFrame(results_metal)
+df_no_metal = pd.DataFrame(results_no_metal)
 
-# Append summary statistics
-results_metal = append_summary_stats(results_metal, 'metals')
-results_no_metal = append_summary_stats(results_no_metal, 'no-metals')
+# Calculate and append summary statistics
+summary_metal = calculate_summary_stats(df_metal, 'metals')
+summary_no_metal = calculate_summary_stats(df_no_metal, 'no-metals')
 
-# Combine both DataFrames and sort by filename to ensure summaries appear at the bottom
-results_combined = pd.concat([results_metal, results_no_metal], ignore_index=True).sort_values(by='File', key=lambda x: x.str.lower())
+# Concatenate results and summaries
+final_df = pd.concat([df_metal, df_no_metal, summary_metal, summary_no_metal], ignore_index=True)
 
-# Ensure numbers are displayed as raw numbers
-pd.options.display.float_format = '{:.2f}'.format
+# Setting float format for pandas
+pd.set_option('display.float_format', '{:.2f}'.format)
 
-# Print the results
-print(results_combined.to_string(index=False))
+# Print the final DataFrame
+print(final_df.to_string(index=False))
 

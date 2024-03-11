@@ -27,4 +27,9 @@ NOK: 50k
    though this is less telling of actual daily performance:
    sh get-all-end-results.sh
 
+OPTIONAL: A simpler way of running a complete end to end analysis
+          (i.e. running steps 3 and 4 from above together)
+          is provided in the form of 'analyse.sh':
+
+          bash analyse.sh basket1.txt
 
