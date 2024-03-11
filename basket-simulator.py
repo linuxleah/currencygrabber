@@ -30,20 +30,22 @@ def simulate_portfolio(start_dates, basket, historical_data):
             if currency in filtered_data.columns:
                 initial_rate = filtered_data.iloc[0].get(currency, pd.NA)
                 if pd.isna(initial_rate):  # Check for missing initial rate
-                    results[currency] = pd.Series('X', index=filtered_data.index)
+                    results[currency] = pd.Series(['X'] * len(filtered_data), index=filtered_data.index)
                     continue
                 initial_units = amount / initial_rate
                 # Track value over time from the valid start date
                 results[currency] = filtered_data[currency] * initial_units
             else:
                 # If currency data is missing, fill the column with 'X'
-                results[currency] = pd.Series('X', index=filtered_data.index)
+                results[currency] = pd.Series(['X'] * len(filtered_data), index=filtered_data.index)
 
         # Convert results to DataFrame and use valid start date for index
         results_df = pd.DataFrame(results, index=filtered_data.index)
-        
-        # Calculate TOTALS for each row
-        results_df['TOTALS'] = results_df.replace('X', 0).sum(axis=1)
+
+        # Generate dynamic Excel formula for the "TOTALS" column
+        num_currencies = len(basket)
+        last_col_letter = chr(65 + num_currencies)  # Shift to start from 'B', and account for all currencies
+        results_df['TOTALS'] = [f'=ROUND(SUM(B{row_index}:{last_col_letter}{row_index}), 2)' for row_index in range(2, 2 + len(filtered_data))]
 
         output_file_name = f"portfolio_value_{pd.Timestamp(valid_start_date).strftime('%Y%m%d')}.csv"
         results_df.to_csv(output_file_name)
