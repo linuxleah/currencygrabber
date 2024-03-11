@@ -42,11 +42,11 @@ def simulate_portfolio(start_dates, basket, historical_data):
         # Convert results to DataFrame and use valid start date for index
         results_df = pd.DataFrame(results, index=filtered_data.index)
 
-        # Generate dynamic Excel formula for the "TOTALS" column
         num_currencies = len(basket)
-        last_col_letter = chr(65 + num_currencies)  # Shift to start from 'B', and account for all currencies
-        results_df['TOTALS'] = [f'=ROUND(SUM(B{row_index}:{last_col_letter}{row_index}), 2)' for row_index in range(2, 2 + len(filtered_data))]
+        # Calculate totals directly and round to 2 decimal places
+        results_df['TOTALS'] = results_df.iloc[:, :num_currencies].replace('X', 0).sum(axis=1).round(2)
 
+        
         output_file_name = f"portfolio_value_{pd.Timestamp(valid_start_date).strftime('%Y%m%d')}.csv"
         results_df.to_csv(output_file_name)
         print(f"Portfolio value simulation saved to {output_file_name}")
