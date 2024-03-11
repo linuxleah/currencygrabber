@@ -21,4 +21,10 @@ NOK: 50k
    python3 basket-simulator.py
 
 4) Analyse the final totals of each run:
+   python3 analyse-results.py
+
+   You can also get just the final totals of each run,
+   though this is less telling of actual daily performance:
    sh get-all-end-results.sh
+
+
