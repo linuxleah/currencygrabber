@@ -1,6 +1,27 @@
 import pandas as pd
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+
+
+def generate_start_dates():
+    start_dates = []
+    # For specific years
+    for year in [2010, 2015, 2020]:
+        for month in range(1, 13):
+            start_dates.append(f"{year}-{month:02d}-01")
+
+    # For every year since 2020 until now
+    current_year = datetime.now().year
+    for year in range(2020, current_year + 1):
+        for month in range(1, 13):
+            # Prevent future dates
+            date_check = datetime(year, month, 1)
+            if date_check > datetime.now():
+                break
+            start_dates.append(date_check.strftime("%Y-%m-%d"))
+
+    return start_dates
 
 # Read historical data
 def read_historical_data():
@@ -101,11 +122,7 @@ if __name__ == "__main__":
 
     historical_data = read_historical_data()
 
-    start_dates = [
-        '2010-01-01', '2010-06-01', '2015-01-01', '2015-06-01',
-        '2020-01-01', '2020-06-01', '2021-01-01', '2021-06-01',
-        '2022-01-01', '2022-06-01', '2023-01-01', '2023-06-01', '2024-01-01'
-    ]
+    start_dates = generate_start_dates()
 
     simulate_portfolio(start_dates, basket, historical_data)
 

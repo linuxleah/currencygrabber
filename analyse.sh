@@ -17,3 +17,4 @@ python3 basket-simulator.py $myfile
 echo "Analysis for $myfile";
 echo " ";
 python3 analyse-results.py
+echo "...end of analysis for $myfile";
