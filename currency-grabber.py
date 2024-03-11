@@ -27,7 +27,7 @@ def fetch_and_save_data(input_data, output_csv_path):
         currencies[currency] = 1
 
     # Prepare for data fetching
-    start_date = "2000-01-01"
+    start_date = "2010-01-01"
     end_date = pd.Timestamp.today().strftime('%Y-%m-%d')  # Today's date
 
     # Fetch historical data
