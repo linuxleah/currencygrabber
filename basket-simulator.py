@@ -53,6 +53,10 @@ def simulate_portfolio(start_dates, basket, historical_data):
         # Convert results to DataFrame and use valid start date for index
         results_df = pd.DataFrame(results, index=filtered_data.index)
 
+        # Filter out any rows containing a blank field or an 'X':
+        results_df.replace('X', pd.NA, inplace=True)  # Optional: Convert 'X' to NaN for uniform handling
+        results_df.dropna(inplace=True)  # Drop all rows with any NaN values
+
 
         num_currencies = len(basket)
         # Calculate totals directly and round to 2 decimal places
