@@ -40,7 +40,9 @@ def fetch_and_save_data(input_data, output_csv_path):
         data = data[['Value']]  # Keep only the 'Value' column
         data = data.copy()
         data.rename(columns={'Value': currency}, inplace=True)
+        data.columns = [currency]  # Ensure the column is named only after the currency
         all_data.append(data)
+
 
         # Sleep to avoid rate-limiting
         if i % sleep_after_every_n == 0:
