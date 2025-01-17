@@ -18,3 +18,4 @@ echo "Analysis for $myfile";
 echo " ";
 python3 analyse-results.py
 echo "...end of analysis for $myfile";
+rm -f portfolio*csv
